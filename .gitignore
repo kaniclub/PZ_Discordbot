@@ -1,0 +1,2 @@
+# docker-composeを除外
+docker-compose.yml

@@ -4,15 +4,8 @@ require 'rcon'
 
 class PZrconBot
     
-    TOKEN=ARGV[0]   
-    CLIENT_ID=ARGV[1]
-    RCON_HOST=ARGV[2]
-    RCON_PORT=ARGV[3]
-    RCON_PASS=ARGV[4]
-    ADMIN_ROLE_ID=ARGV[5]
-    
     def initialize
-        @bot = Discordrb::Commands::CommandBot.new(client_id: CLIENT_ID, token: TOKEN, prefix: "/")
+        @bot = Discordrb::Commands::CommandBot.new(client_id: ENV["CLIENT_ID"], token: ENV["TOKEN"], prefix: "/")
     end
     
     def start
@@ -30,12 +23,19 @@ class PZrconBot
             begin
                 r = event.user.roles
                 
-                if r.include?(ADMIN_ROLE_ID)
+                if r.include?(ENV["ADMIN_ROLE_ID"])
                     event.send_message("処理を実行中・・・")
-                    rconcl = Rcon::Client.new(host: RCON_HOST, port: RCON_PORT, password: RCON_PASS)
+
+                    rconrp = Rcon::Response.new(id: nil, type: nil, body: nil)
+
+                    rconcl = Rcon::Client.new(host: ENV["RCON_HOST"], port: ENV["RCON_PORT"], password: ENV["RCON_PASS"])
                     rconcl.authenticate!
-                    rconcl.execute(code, wait: 0.25)
+                    rconrp=rconcl.execute(code, wait: 0.25)
                     rconcl.end_session!
+
+                    event.send_message("------------------------")
+                    event.send_message(rconrp.body)
+                    event.send_message("------------------------")
                     
                     event.send_message("処理が完了しました。")
                 else
@@ -76,15 +76,6 @@ class PZrconBot
             end
         end
         
-                ### テスト ###
-        @bot.command :test do |event|
-            begin
-
-            rescue => e
-                event.send_message("例外発生し、処理を中断しました。")
-                event.send_message(e.message)
-            end
-        end
         ### help ###
         @bot.command :help do |event|
             event.respond(help_message)
